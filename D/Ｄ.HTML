@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <h3>Canvas 點陣繪圖</h3>
+    <h4>用Button取代掉無法修改上傳檔案input圖案</h4>
+    <button onclick="openPicker()">OpenFile</button>
+    <input id="file" type="file" onchange="openFile(this)" style="display: none">
+    <span>套濾鏡</span>
+    <button onclick="grayscale()">Grayscale</button>
+    <span>反轉</span>
+    <button onclick="invert()">Grayscale</button>
+    <span >下載</span>
+    <button onclick="downloadFile()">Download File</button>
+    <a id="download-link"></a>
+    <!-- <a download="下載的檔名" href="檔案的位置""></a> -->
+    <hr>
+    <canvas id="cvs" width="600" , height="450" style="border:1px solid black"></canvas>
+</body>
+<script>
+
+
+    let cvs, ctx;
+    window.addEventListener("load", function () {
+        cvs = document.getElementById("cvs");//取得canvas 物件
+        ctx = cvs.getContext('2d');//取得 context 物件
+        //填滿
+        ctx.fillRect(100, 100, 50, 50);
+        ctx.fillStyle = "red"; //畫筆顏色
+        ctx.fillText('hello', 200, 100);
+
+
+        //建立路徑：定義路徑＝>畫出來
+        ctx.beginPath();//開始定義路徑
+        ctx.moveTo(400, 100);//將起始點移動到（400,100）座標
+        ctx.lineTo(400, 50);
+        ctx.lineTo(450, 75);
+        //描邊或者填滿
+        ctx.fill(); //storke(),fill()
+
+        //畫出圖片
+        // 可接收圖片物件：畫布/影片（第一個畫面）
+        let img = new Image();
+        //同資料夾的來源
+        img.src = '000.jpg';
+        img.addEventListener('load', function () {
+            //圖片仔入完成後，觸發load事件,才能畫出來
+            // ctx,wdrawImage(img, 0, 0, cvs.width, cvs.height);
+            // ctx.drawImage(img, 300, 300, cvs.width, cvs.height)
+        })
+
+        //描邊
+        ctx.strokeStyle = "blue";
+        ctx.strokeRect(200, 350, 50, 50)
+
+    });
+    function openPicker() {
+            let input = document.getElementById('file');
+            input.click();
+        }
+
+    function openFile(input) {
+            let file = input.files[0];
+            console.log(file);
+            //URL.createObjectURL (檔案物件貨blob物件)
+            let src = URL.createObjectURL(file);
+            console.log(src);
+            loadImage(src);
+            }
+    function loadImage(src) {
+        //把圖檔畫在畫布上
+        let img = new Image();
+        img.src = src;
+        img.addEventListener('load', function () {
+        //根據仔入的圖片尺寸來調整cancas 的尺寸
+        cvs.width = img.width;
+        cvs.height = img.height;
+        ctx.drawImage(img, 0, 0, cvs.width, cvs.height);
+    })}
+
+    function grayscale() {
+        //取得ImageData 物件
+        let pixels=ctx.getImageData(0,0,cvs.width,cvs.height);
+        console.log(pixels);
+        //取得ImageData 物件中的顏色顏料
+        let data = pixels.data;
+        console.log(data);
+        //以像素為單位來處理顏色;一次往前跳四個編號
+        //每個顏色數字介於0~255 之間。灰色 rgba 的資料都一樣
+        /*
+            data[i]; r
+            data[i+1]; g
+            data[i+2]; b
+            data[i+3]; a
+        */
+        let avg;
+        for (let i=0;i<data.length;i=i+4){
+            avg=(data[i]+data[i+1]+data[i+2])/3;
+            data[i]=avg;
+            data[i+1]=avg;
+            data[i+2]=avg;
+        }
+        console.log(avg);
+        ctx.putImageData(pixels,0,0)
+    }
+
+    function invert() {
+            //取得ImageData 物件
+            let pixels = ctx.getImageData(0, 0, cvs.width, cvs.height);
+            console.log(pixels);
+            //取得ImageData 物件中的顏色顏料
+            let data = pixels.data;
+            console.log(data);
+            //以像素為單位來處理顏色;一次往前跳四個編號
+            //每個顏色數字介於0~255 之間。灰色 rgba 的資料都一樣
+            /*
+                data[i]; red
+                data[i+1]; green
+                data[i+2]; blue
+                data[i+3]; alpha
+            */
+            let avg;
+            for (let i = 0; i < data.length; i = i + 4) {
+                data[i]= 255-data[i];
+                data[i + 1] = 255 - data[i+1];
+                data[i + 2] = 255 - data[i+2];
+            }
+            console.log(avg);
+            ctx.putImageData(pixels, 0, 0)
+        }
+
+        function downloadFile() {
+            //把畫布的資料轉換成blob 物件，JS內部用來儲存二進位資料的物件
+            //非同步的動作，透過callback 函式傳遞轉換好的Blob 物件
+            cvs.toBlob(function (blob)  {
+                //取的blob資料的後續動作
+                let src =URL.createObjectURL(blob)
+                //設定好下載的資訊，並觸發下載的動作
+                let link = document.getElementById('download-link')
+                link.href =src;
+                link.download ='image.png';
+                link.click();
+            },"image/jpeg");//設定格式
+
+        }
+
+
+
+</script>
+</html>
