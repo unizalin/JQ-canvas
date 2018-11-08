@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <h3>Game</h3>
+    <hr>
+    <canvas id="cvs" width="600" height="600" style="border: 1px solid black"></canvas>
+</body>
+<script>
+    let cvs, ctx;
+    let x1;
+    let x2 ,y2;
+    window.addEventListener('load',function(){
+        cvs =document.getElementById('cvs');
+        ctx = cvs.getContext('2d')
+        //動畫是用影格表示 1s幾格
+        x1=100;
+        x2=100; y2=100;
+        window.setInterval(refresh,10)
+    })
+
+    function refresh()  {
+        //更新資料
+        x1++;
+        x2++; y2++;
+        //更新後再次移動
+        //先清空畫面
+        ctx.clearRect(0,0,cvs.width,cvs.height);
+        //在畫上去造成移動
+        ctx.fillRect(x1,100,20,20)
+        ctx.fillRect(x2,y2, 20, 20)
+
+    }
+</script>
+</html>

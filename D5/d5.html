@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <h3>Canvas</h3>
+    <input id="file" type="file" onchange="openFile(this)" style="display: none">
+    <button onclick="openDriveFile()" disabled="true" id="drive-btn"> Open Drive File</button>
+    <button onclick="saveDriveFile()"> Save Drive File</button>
+    <hr>
+    <canvas id="cvs" width="600" , height="450" style="border:1px solid black"></canvas>
+</body>
+<script>
+        let cvs, ctx;
+            window.addEventListener("load", function () {
+                cvs = document.getElementById("cvs");//取得canvas 物件
+                ctx = cvs.getContext('2d');//取得 context 物件
+            });
+        var CLIENT_ID = '1085448331645-aas257nraa42aug0s2qqh4i951d8meqr.apps.googleusercontent.com';
+        var API_KEY = 'AIzaSyDfML_ka1S9Cz_PFPvYRnh222GketbA-GQ';
+        var SCOPES = 'https://www.googleapis.com/auth/drive';
+
+        //載入‘client:auth2'套件後，執行initClient
+        //載入picker 檔案選擇器
+        function handleClientLoad() {
+            gapi.load('picker',);
+            gapi.load('client:auth2', initClient);
+        }
+        //  初始化 apiKey Id
+        // 提供給google必要的資訊，同時偵測是否已經授權
+        function initClient() {
+            gapi.client.init({
+                apiKey: API_KEY,
+                clientId: CLIENT_ID,
+                scope: SCOPES //要求使用者授權的範圍
+            }).then(function () {
+                //若授權狀態有變化，主動呼叫 updateSigninStatus 函式
+                // gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+                // 初始化完成，取得使用者的授權狀態
+                //根據取的授權狀態 true/false ，來處理事件
+                document.getElementById('drive-btn').disabled = false;
+            });
+        }
+//
+        function openDriveFile() {
+            let signedIn = gapi.auth2.getAuthInstance().isSignedIn.get();
+            console.log(signedIn)
+            if (signedIn) {
+                openDrivePicker();
+            } else {
+                gapi.auth2.getAuthInstance().signIn();
+            }
+        }
+
+        function listFile() {
+            //用GET方法連線到 https://www.googleapis.com/auth/drive/v3/files
+            // 連線時必須戴上 Access Token 來自於授權程序
+            let auth = gapi.auth2.getAuthInstance();
+            let accessToken = auth.currentUser.get().getAuthResponse().access_token;
+            alert(accessToken);
+            let req = new XMLHttpRequest();
+            req.open('GET', "https://www.googleapis.com/drive/v3/files?access_token="+accessToken);
+            req.addEventListener('load', function () {
+                //連線完成，取得伺服器的回應
+                console.log(req.responseText)//原始的資料為字串格式
+                let data = JSON.parse(req.responseText);//將字串資料轉換成物件
+                console.log(data)
+                for(let i=0;i<data.length;i++){
+                    console.log(data.files[i].id)
+                }
+            });
+            req.send();
+        }
+//1cZWLVB9s_mT2du0Y9AMzYCtuhOWY8VkW
+        function getFile(fieldId) {
+            //用GET方法連線到 https://www.googleapis.com/auth/drive/v3/files
+            // 連線時必須戴上 Access Token 來自於授權程序
+            let auth = gapi.auth2.getAuthInstance();
+            let accessToken = auth.currentUser.get().getAuthResponse().access_token;
+            alert(accessToken);
+            let req = new XMLHttpRequest();
+            req.responseType = "arraybuffer";//回傳值設定,js 處理非文字資料
+            // alt&media 得到下載那個檔案位置
+            req.open('GET', "https://www.googleapis.com/drive/v3/files/1cZWLVB9s_mT2du0Y9AMzYCtuhOWY8VkW?alt=media&access_token=" + accessToken);
+            req.addEventListener('load', function () {
+                //連線完成，取得伺服器的回應
+                console.log(req.response); //取得ArrayBuffer 物件
+                //轉換成blob物件
+                let blob=new Blob([req.response]);
+                let src = URL.createObjectURL(blob);
+                loadImage(src)
+
+            });
+            req.send();
+        }
+
+        function loadImage(src) {
+            let img = new Image();
+                img.src = src;
+                img.addEventListener('load' , function () {
+                    cvs.width = img.width;
+                    cvs.height = img.height;
+                    ctx.drawImage(img, 0 ,0)
+                })
+        }
+        //檔案選擇器取代listFile
+        function openDrivePicker () {
+            //取得accessToken
+            let auth = gapi.auth2.getAuthInstance();
+            let accessToken = auth.currentUser.get().getAuthResponse().access_token;
+            //準備建立Google Picker
+            let view = new google.picker.View(google.picker.ViewId.DOCS);
+            view.setMimeTypes("image/png,image/jpeg,image/jpg");
+            let picker = new google.picker.PickerBuilder()
+                .enableFeature(google.picker.Feature.NAV_HIDDEN)
+                .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+                .setAppId("1085448331645") //專案id
+                .setOAuthToken(accessToken)//accessToken
+                .addView(view)
+                .addView(new google.picker.DocsUploadView())
+                .setDeveloperKey(API_KEY)//apikey
+                .setCallback(pickerCallback)
+                .build();
+            picker.setVisible(true);
+        }
+let fileId;
+        function pickerCallback(data) {
+                //當使用者選擇了一個檔案，找出相對應的ＩＤ
+                if (data.action == google.picker.Action.PICKED) {
+                    fileId = data.docs[0].id;
+                    getPickerFile (fileId);
+                }
+            }
+        //根據傳過來的id 下載
+        function getPickerFile(fileId) {
+                //用GET方法連線到 https://www.googleapis.com/auth/drive/v3/files
+                // 連線時必須戴上 Access Token 來自於授權程序
+                let auth = gapi.auth2.getAuthInstance();
+                let accessToken = auth.currentUser.get().getAuthResponse().access_token;
+                let req = new XMLHttpRequest();
+                req.responseType = "arraybuffer";//回傳值設定,js 處理非文字資料
+                // alt&media 得到下載那個檔案位置
+                req.open('GET', "https://www.googleapis.com/drive/v3/files/" + fileId +"?alt=media&access_token=" + accessToken);
+                req.addEventListener('load', function () {
+                    //連線完成，取得伺服器的回應
+                    console.log(req.response); //取得ArrayBuffer 物件
+                    //轉換成blob物件
+                    let blob = new Blob([req.response]);
+                    let src = URL.createObjectURL(blob);
+                    loadImage(src)
+                });
+                req.send();
+            }
+
+
+
+            //另存新檔案
+        function saveDriveFile() {
+            //把二進位資料轉換成base64編碼的字串
+            let dataURL = cvs.toDataURL("image/jpg");
+            let data = dataURL.replace("data:image/jpeg;base64,", "")
+            // 連線時必須戴上 Access Token 來自於授權程序
+            let auth = gapi.auth2.getAuthInstance();
+            let accessToken = auth.currentUser.get().getAuthResponse().access_token;
+            //準備Ｍultipart Body
+            // \r\n 換行
+            let body = "--foo_bar_baz\r\n"+
+                "Content-Type: application/json; charset=UTF-8\r\n\r\n"+
+                "{\"name\": \"test.jpg\"}\r\n\r\n"+ // {"name":"test.jpg"}
+                "--foo_bar_baz\r\n"+
+                "Content-Type: image/jpeg\r\n"+
+                "Content-Transfer-Encoding: base64\r\n\r\n"+
+                data+"\r\n"+
+                "--foo_bar_baz--";
+            //準備上傳檔案
+            let req =new XMLHttpRequest();
+            req.open('POST',' https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&access_token='+ accessToken);
+            req.setRequestHeader("Content-Type","multipart/related; boundary=foo_bar_baz")
+            req.addEventListener('load',function () {
+                alert(req.responseText)
+            })
+            req.send(body)
+        }
+
+        function saveOldDriveFile() {
+                //把二進位資料轉換成base64編碼的字串
+                let dataURL = cvs.toDataURL("image/jpg");
+                let data = dataURL.replace("data:image/jpeg;base64,", "")
+                // 連線時必須戴上 Access Token 來自於授權程序
+                let auth = gapi.auth2.getAuthInstance();
+                let accessToken = auth.currentUser.get().getAuthResponse().access_token;
+                //準備Ｍultipart Body
+                // \r\n 換行
+                let body = "--foo_bar_baz\r\n" +
+                    "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+                    "{\"name\": \"test.jpg\"}\r\n\r\n" + // {"name":"test.jpg"}
+                    "--foo_bar_baz\r\n" +
+                    "Content-Type: image/jpeg\r\n" +
+                    "Content-Transfer-Encoding: base64\r\n\r\n" +
+                    data + "\r\n" +
+                    "--foo_bar_baz--";
+                //準備上傳檔案
+                let req = new XMLHttpRequest();
+                req.open('PATCH', 'https://www.googleapis.com/upload/drive/v3/files/'+fieldId+'?uploadType=multipart&access_token=' + accessToken);
+                req.setRequestHeader("Content-Type", "multipart/related; boundary=foo_bar_baz")
+                req.addEventListener('load', function () {
+                    alert(req.responseText)
+                })
+                req.send(body)
+            }
+</script>
+<script async defer src="https://apis.google.com/js/api.js" onload="this.onload=function(){};handleClientLoad()"
+    onreadystatechange="if (this.readyState === 'complete') this.onload()">
+
+    </script>
+</html>

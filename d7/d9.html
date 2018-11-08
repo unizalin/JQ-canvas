@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <h3>Game 1-3 非同步</h3>
+    <canvas id="cvs" width="600" height="600" style="border: 1px solid black"></canvas>
+</body>
+<script>
+    //基本繪圖元件
+    let cvs ,cts;
+    window.addEventListener('load', function () {
+        cvs = document.getElementById('cvs');
+        ctx = cvs.getContext('2d')
+        loadResource();
+        loadResourcePromise();
+        loadResourceAsync();
+    })
+    /*
+        解決非同步辦法
+        callback
+        promise
+        async await
+    */
+
+    /*
+        非同步 物件
+    */
+    function loadResource() {
+        loadImage("training99/smoke.png")
+        loadImage('training99/plane.png')
+        loadImage('training99/explosion.png')
+        console.log('start')
+    }
+
+    function loadImage(src) {
+        //非同步的主因
+        let img = new Image();
+        img.src=src;
+        img.addEventListener('load',()=>{
+            console.log(src,'loading')
+        })
+    }
+    /*
+        promise 物件
+    */
+    function loadResourcePromise() {
+            loadImagePromise('training99/smoke.png').then(()=>{
+                return loadImagePromise('training99/explosion.png');
+            }).then(()=>{
+                return loadImagePromise('training99/plane.png');
+            }).then(()=>{
+                console.log('start Promise')
+            })
+
+        }
+
+    function loadImagePromise(src) {
+        let promise = new Promise(function (resolve, reject) {
+            let img = new Image();
+            img.src = src;
+            img.addEventListener('load', () => {
+                console.log(src, 'loading Promise')
+                resolve();
+            })
+        });
+        return promise;
+    }
+
+    /*
+        asaync promise 物件
+    */
+    async function loadResourceAsync() {
+
+        await loadImagAsync("training99/smoke.png")
+        await loadImagAsync('training99/plane.png')
+        await loadImagAsync('training99/explosion.png')
+        console.log('start Async')
+
+        }
+
+        function loadImagAsync(src) {
+            let promise = new Promise(function (resolve, reject) {
+                let img = new Image();
+                img.src = src;
+                img.addEventListener('load', () => {
+                    console.log(src, 'loading Async')
+                    resolve();
+                })
+            });
+            return promise;
+        }
+
+    // function test() {
+    //     /*
+    //         new Promise(要執行的韓式（成功的函式,失敗得函式）{
+    //             做要做的事情：
+    //                 如果成功，呼叫 成功函式（資料）接到 then(繼續處理的函式)
+    //                 如果失敗，呼叫 失敗函式（資料）接到 catch(繼續處理的函式)
+    //         })
+    //     */
+    //     let promise = new Promise(function(resolve,reject){
+    //         setTimeout(() => {
+    //             resolve(3)
+    //         }, 2000);
+    //     });
+    //     return promise;
+    // }
+    // test().then(function (result) {
+    //     alert(result)
+    //     return test();
+    // }).then(function (result) {
+    //     alert(result)
+    // })
+    /*
+    呼叫test 得到一個promise
+    成功時兩秒後呼叫一個3
+    在呼叫一個test 得到一個promise
+    成功時兩秒後呼叫 3
+    */
+
+</script>
+</html>

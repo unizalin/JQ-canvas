@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <h3>Game 1-1</h3>
+    <canvas id="cvs" width="600" height="600" style="border: 1px solid black"></canvas>
+</body>
+<script>
+    //基本繪圖元件
+    let cvs ,cts;
+    //外部資源
+    let smoke;
+    //遊戲裡面會變動的資料
+
+    let rs; //陣列取代一個一個單獨命名
+
+    let startX, startY;
+
+
+    window.addEventListener('load', function () {
+        cvs = document.getElementById('cvs');
+        ctx = cvs.getContext('2d')
+
+        //先載入外部資源
+        smoke = new Image();
+        smoke.src="training99/smoke.png"
+        smoke.addEventListener('load',function () {
+            //外部資源載入後<
+            rs=[];
+            startX=cvs.width/2;
+            startY=cvs.height-50;
+            window.setInterval(refresh,10)
+        })
+
+    })
+
+    function refresh() {
+        //更新資料
+        startX=(startX+0.5)%cvs.width;
+        rs.push(new Smoke(startX,startY))
+
+        //清除
+        let dead;
+        for (let i=0;i<rs.length;i++){
+            dead=rs[i].update();
+            if(dead){
+                rs.splice(i,1);
+                i--;
+            }
+        }
+
+        for (let i = 0;i<rs.length;i++){
+            rs[i].update()
+        }
+        //更新後再次移動
+        //先清空畫面
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
+        //在畫上去造成移動
+
+        for (let i = 0; i < rs.length; i++) {
+            rs[i].draw()
+        }
+    }
+
+    function Smoke(x,y) {
+        this.x = x;
+        this.y = y;
+        this.vx=Math.random()-0.5;
+        this.vy=Math.random()*1-2;
+        this.alpha=1;
+        this.size=10;
+
+        this.update=()=>{
+            this.x+=this.vx;
+            this.y+=this.vy;
+            this.size+=0.1;
+            this.alpha-=0.003
+            return this.y<0;
+        }
+        this.draw=()=>{
+            ctx.save(); //儲存當前的繪圖設定
+            ctx.globalAlpha=this.alpha;
+            ctx.drawImage(smoke,
+            this.x-this.size/2,this.y-this.size/2,this.size,this.size)
+            ctx.restore();//取回前一次設定
+        }
+    }
+
+
+</script>
+</html>
