@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="lib.js"></script>
+</head>
+
+<body>
+    <h3>Game 1-4  載入</h3>
+    <div id="loading"></div>
+    <div id="menu" style="display: none">
+        <button onclick="initGame();"> Start Game</button>
+    </div>
+    <div id="game" style="display: none">
+        <canvas id="cvs" width="600" height="600" style="border: 1px solid black"></canvas>
+    </div>
+</body>
+<script>
+    //基本繪圖元件
+    let ctx;
+    window.addEventListener('load', function () {
+        ctx = document.querySelector('#cvs').getContext('2d')
+        loadImages();
+    })
+
+    //遊戲中會使用到的物件
+    let game={
+        plane : null,
+        drawables : null,
+        key:{  //處理鍵盤按鍵時延遲
+            left: false,
+            top: false,
+            right: false,
+            bottom: false,
+            space: false,
+        }
+    }
+
+
+    // 將支援打包
+    let res ={
+        total: 3,
+        loaded: 0,
+        img:{
+            plane: 'training99/plane.png',
+            explosion: 'training99/explosion.png',
+            smoke: 'training99/smoke.png'
+        }
+    }
+
+    // 載入資源圖片
+async function loadImages() {
+    // for( 變數 in 物件)
+    // 物件.成員名稱  or 物件「成員名稱」
+    for( let name in res.img){
+        let loading = document.querySelector('#loading')
+        // let result =await loadImage(res.img[name]);
+        // console.log(result)
+        res.img[name]=await loadImage(res.img[name])
+        res.loaded++;
+        let percentage= 100* res.loaded/res.total;
+        loading.innerHTML= percentage+'%';
+        console.log(percentage)
+    }
+    initMenu()
+}
+    function loadImage(src) {
+        return new Promise(function (resolve, reject) {
+            let img = new Image();
+            img.src = src;
+            img.addEventListener('load', () => {
+                console.log(src, 'loading Promise')
+                resolve(img);
+            })
+        });
+    }
+    //
+    function initMenu() {
+        document.querySelector('#loading').style.display="none"
+        document.querySelector('#game').style.display = "none"
+        document.querySelector('#menu').style.display = "block"
+    }
+    // 初始遊戲
+    function initGame() {
+        //建立鍵盤操作介面
+        document.addEventListener('keydown', keydown);
+        document.addEventListener('keyup', keyup);
+        //初始化遊戲相關得資料
+        game.plane=new lib.Plane()
+        game.drawables=[game.plane];
+        //啟動遊戲
+        window.setInterval(refreshGame,10)
+        //切換HTML的顯示和隱藏
+        document.querySelector('#game').style.display = "block"
+        document.querySelector('#menu').style.display = "none"
+    }
+
+    function keydown(e) {
+        let code = e.keyCode;
+        if(code==37){
+            game.key.left=true;
+        }else if (code == 38){
+            game.key.top = true;
+        }else if (code == 39){
+            game.key.right = true;
+        }else if (code == 40){
+            game.key.bottom = true;
+        }else if(code == 65){
+            game.key.space = true
+        }
+    }
+
+    function keyup(e) {
+            let code = e.keyCode;
+            console.log(code)
+            if (code == 37) {
+                game.key.left = false;
+            } else if (code == 38) {
+                game.key.top = false;
+            } else if (code == 39) {
+                game.key.right = false;
+            } else if (code == 40) {
+                game.key.bottom = false;
+            } else if (code == 65){
+                game.key.space = false
+            }
+        }
+
+
+    function refreshGame() {
+        let ds =game.drawables;
+        //更新資料
+        for (let i=0; i<ds.length; i++){
+            if(ds[i].update()) {
+                ds.splice(i,1);
+                i--;
+            }
+        }
+        //清空畫面
+        ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height)
+        //重畫
+    }
+</script>
+
+</html>
