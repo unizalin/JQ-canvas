@@ -10,13 +10,13 @@
 </head>
 
 <body>
-    <h3>Game 1-4  載入</h3>
+    <h3>Game 1-5  載入</h3>
     <div id="loading"></div>
     <div id="menu" style="display: none">
         <button onclick="initGame();"> Start Game</button>
     </div>
     <div id="game" style="display: none">
-        <canvas id="cvs" width="600" height="600" ></canvas>
+        <canvas id="cvs" width="600" height="450"></canvas>
     </div>
 </body>
 <script>
@@ -26,15 +26,14 @@
 
     //遊戲中會使用到的物件
     let game={
+        id: null, //排程
         circle: null,//回合數
+        over: null, //紀錄飛機爆炸所在位置
         plane : null,
         drawables : null,
         key:{  //處理鍵盤按鍵時延遲
-            left: false,
-            top: false,
-            right: false,
-            bottom: false,
-            space: false,
+            left: false,top: false,right: false,
+            bottom: false,space: false,
         }
     }
 
@@ -51,7 +50,7 @@
     }
 
     window.addEventListener('load', function () {
-            ctx = document.querySelector('#cvs').getContext('2d')
+            ctx =document.querySelector('#cvs').getContext('2d');
             loadImages();
         })
 
@@ -90,24 +89,27 @@ async function loadImages() {
 
     // 初始遊戲
     function initGame() {
+        //移除重新開始
+        ctx.canvas.removeEventListener('click', initGame);
+        //初始化鍵盤追蹤
+        game.key={
+            left: false, top: false, right: false,
+            bottom: false, space: false,
+        };
         //建立鍵盤操作介面
         document.addEventListener('keydown', keydown);
         document.addEventListener('keyup', keyup);
         //初始化遊戲相關得資料
-<<<<<<< HEAD
-        game.plane=new lib.Plane();
-        game.drawables=[game.plane];
-=======
         game.circle = 0;
+        game.over =  false;
         game.plane=new lib.Plane()
         game.bulletSystem=new lib.BulletSystem()
-        game.drawables=[game.plane , game.bulletSystem];
->>>>>>> 62d0a6b80475ca1d92bb98973f008e38d9ea025b
-        //啟動遊戲
-        window.setInterval(refreshGame,10)
+        game.drawables=[game.plane, game.bulletSystem];
+        //啟動遊戲,紀錄排程編號
+        game.id=window.setInterval(refreshGame, 10);
         //切換HTML的顯示和隱藏
-        document.querySelector('#game').style.display = "block"
-        document.querySelector('#menu').style.display = "none"
+        document.querySelector('#game').style.display = "block";
+        document.querySelector('#menu').style.display = "none";
     }
 
     function keydown(e) {
@@ -143,16 +145,12 @@ async function loadImages() {
 
 
     function refreshGame() {
-<<<<<<< HEAD
-        let ds =game.drawables;
-        console.log(typeof(ds))
-=======
         var ds =game.drawables;
->>>>>>> 62d0a6b80475ca1d92bb98973f008e38d9ea025b
+        console.log(ds);
         //更新資料
-        for (let i=0; i<ds.length; i++){
-            // debugger;
-            if(ds[i].updated) {
+        for(var i=0; i<ds.length; i++){
+            if(ds[i].update()) {
+                console.log('test')
                 ds.splice(i,1);
                 i--;
             }
@@ -160,18 +158,39 @@ async function loadImages() {
         //清空畫面
         ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height)
         //重畫
-<<<<<<< HEAD
-        this.draw = () => {
-            for (let i = 0; i < ds.length; i++) {
-                this.ds[i].draw();
-            }
-=======
-        for (let i=0 ; i<ds.length; i++){
+        for (var i=0 ; i<ds.length; i++){
             ds[i].draw();
->>>>>>> 62d0a6b80475ca1d92bb98973f008e38d9ea025b
+        }
+        //更新回合數
+        game.circle ++;
+        //遊戲結束
+        if(game.plane==null){
+            endGame()
         }
     }
 
+    function endGame() {
+        //畫上爆炸圖
+        ctx.drawImage(res.img.explosion,
+            game.plane.x-20, game.plane.y-20, 40, 40)
+        //計算時間
+        let seconds=game.circle/100;
+        //畫出結束畫面
+        ctx.save();
+        ctx.fillStyle="white";
+        ctx.gobalAlpha=0.5;
+        ctx.fillRect(0,0, ctx.canvas.width, ctx.canvas.height);
+        ctx.font="30px sans-serif";//設定文字樣式，根css 設定一樣
+        ctx.fillText(seconds+'s', ctx.canvas.width/2-30, ctx.canvas.height/2)
+        ctx.restore()
+        //移除遊戲鍵盤操作介面
+        document.removeEventListener('keydown', keydown);
+        document.removeEventListener('keyup', keyup);
+        //結束遊戲
+        window.clearInterval(game.id)
+        //加入重新開始的功能
+        ctx.canvas.addEventListener('click',initGame)
+    }
 </script>
 
 </html>
