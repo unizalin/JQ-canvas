@@ -16,7 +16,7 @@
         <button onclick="initGame();"> Start Game</button>
     </div>
     <div id="game" style="display: none">
-        <canvas id="cvs" width="600" height="600" ></canvas>
+        <canvas id="cvs" width="600" height="600" style="border: 1px solid black"></canvas>
     </div>
 </body>
 <script>
@@ -90,7 +90,7 @@ async function loadImages() {
         document.addEventListener('keydown', keydown);
         document.addEventListener('keyup', keyup);
         //初始化遊戲相關得資料
-        game.plane=new lib.Plane();
+        game.plane=new lib.Plane()
         game.drawables=[game.plane];
         //啟動遊戲
         window.setInterval(refreshGame,10)
@@ -133,11 +133,10 @@ async function loadImages() {
 
     function refreshGame() {
         let ds =game.drawables;
-        console.log(typeof(ds))
+        // console.log(ds[0].update())
         //更新資料
         for (let i=0; i<ds.length; i++){
-            // debugger;
-            if(ds[i].updated) {
+            if(ds[i].update()) {
                 ds.splice(i,1);
                 i--;
             }
@@ -151,7 +150,6 @@ async function loadImages() {
             }
         }
     }
-
 </script>
 
 </html>

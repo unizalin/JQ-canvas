@@ -18,7 +18,6 @@
         ctx = cvs.getContext('2d')
         loadResource();
         loadResourcePromise();
-        loadResourceAllPromise();
         loadResourceAsync();
     })
     /*
@@ -50,8 +49,7 @@
         promise 物件
     */
     function loadResourcePromise() {
-            loadImagePromise('training99/smoke.png')
-            .then(()=>{
+            loadImagePromise('training99/smoke.png').then(()=>{
                 return loadImagePromise('training99/explosion.png');
             }).then(()=>{
                 return loadImagePromise('training99/plane.png');
@@ -74,36 +72,10 @@
     }
 
     /*
-        promise 物件
-    */
-    function loadResourcePromise() {
-        loadImagePromise('training99/smoke.png')
-        .then(() => {
-            return loadImagePromise('training99/explosion.png');
-        }).then(() => {
-            return loadImagePromise('training99/plane.png');
-        }).then(() => {
-            console.log('start Promise')
-        })
-
-    }
-
-    function loadImagePromise(src) {
-        let promise = new Promise(function (resolve, reject) {
-            let img = new Image();
-            img.src = src;
-            img.addEventListener('load', () => {
-                console.log(src, 'loading Promise')
-                resolve();
-            })
-        });
-
-
-
-    /*
         asaync promise 物件
     */
     async function loadResourceAsync() {
+
         await loadImagAsync("training99/smoke.png")
         await loadImagAsync('training99/plane.png')
         await loadImagAsync('training99/explosion.png')

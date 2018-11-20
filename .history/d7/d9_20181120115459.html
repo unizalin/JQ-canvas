@@ -50,8 +50,7 @@
         promise 物件
     */
     function loadResourcePromise() {
-            loadImagePromise('training99/smoke.png')
-            .then(()=>{
+            loadImagePromise('training99/smoke.png').then(()=>{
                 return loadImagePromise('training99/explosion.png');
             }).then(()=>{
                 return loadImagePromise('training99/plane.png');
@@ -77,8 +76,7 @@
         promise 物件
     */
     function loadResourcePromise() {
-        loadImagePromise('training99/smoke.png')
-        .then(() => {
+        loadImagePromise('training99/smoke.png').then(() => {
             return loadImagePromise('training99/explosion.png');
         }).then(() => {
             return loadImagePromise('training99/plane.png');
@@ -104,6 +102,7 @@
         asaync promise 物件
     */
     async function loadResourceAsync() {
+
         await loadImagAsync("training99/smoke.png")
         await loadImagAsync('training99/plane.png')
         await loadImagAsync('training99/explosion.png')

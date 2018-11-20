@@ -16,7 +16,7 @@
         <button onclick="initGame();"> Start Game</button>
     </div>
     <div id="game" style="display: none">
-        <canvas id="cvs" width="600" height="600" ></canvas>
+        <canvas id="cvs" width="600" height="600" style="border: 1px solid black"></canvas>
     </div>
 </body>
 <script>
@@ -133,11 +133,12 @@ async function loadImages() {
 
     function refreshGame() {
         let ds =game.drawables;
-        console.log(typeof(ds))
+        // console.log(ds[0].update())
         //更新資料
         for (let i=0; i<ds.length; i++){
-            // debugger;
-            if(ds[i].updated) {
+            debugger;
+            dead = ds[i].update();
+            if(dead) {
                 ds.splice(i,1);
                 i--;
             }
@@ -151,7 +152,6 @@ async function loadImages() {
             }
         }
     }
-
 </script>
 
 </html>
